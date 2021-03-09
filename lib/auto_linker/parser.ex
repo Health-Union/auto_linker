@@ -30,6 +30,7 @@ defmodule AutoLinker.Parser do
 
   @match_url ~r{^[\w\.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
   @match_scheme ~r{^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$}
+  @url_wrapper ~r/^([\["'(-])(.+)([\]"')-])$/
 
   @match_phone ~r"((?:x\d{2,7})|(?:(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
 
@@ -178,9 +179,16 @@ defmodule AutoLinker.Parser do
     do: do_parse(text, scheme, opts, {buffer <> <<ch::8>>, acc, state}, handler)
 
   def check_and_link(buffer, scheme, opts) do
+    {left_wrap, buffer, right_wrap} =
+      case Regex.scan(@url_wrapper, buffer) do
+        [[_, left_wrap, buffer, right_wrap]] -> {left_wrap, buffer, right_wrap}
+        _ -> {"", buffer, ""}
+      end
+
     buffer
     |> is_url?(scheme)
     |> link_url(buffer, opts)
+    |> add_wrapper(left_wrap, right_wrap)
   end
 
   def check_and_link_phone(buffer, _, opts) do
@@ -188,6 +196,8 @@ defmodule AutoLinker.Parser do
     |> match_phone
     |> link_phone(buffer, opts)
   end
+
+  defp add_wrapper(buffer, left_wrap, right_wrap), do: left_wrap <> buffer <> right_wrap
 
   @doc false
   def is_url?(buffer, true) do
