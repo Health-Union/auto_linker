@@ -28,9 +28,9 @@ defmodule AutoLinker.Parser do
   # @invalid_url ~r/\.\.+/
   @invalid_url ~r/(\.\.+)|(^(\d+\.){1,2}\d+$)/
 
-  @match_url ~r|^[\w.-]+(?:\.[\w-]{2,})(?:[:/?]+[\w-._~:/?#[\]@!$&'()*+,;=.]*)?$|
-  @match_scheme ~r|^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w-]{2,})(?:[:/?]+[\w-._~:/?#[\]@!$&'()*+,;=.]*)?$|
-  @url_wrapper ~r/^([\["'(-])(.+)([\]"')-])/
+  @match_url ~r|^[\w\.-]+(?:\.[\w-]{2,})(?:[:/?]+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]*)?$|
+  @match_scheme ~r|^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w-]{2,})(?:[:/?]+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]*)?$|
+  @url_wrapper ~r/^([\["'\(\-]*)(.+)([\]"'\)\-\.])$/
 
   @match_phone ~r"((?:x\d{2,7})|(?:(?:\+?1\s?(?:[.-]\s?)?)?(?:\(\s?(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s?\)|(?:[2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s?(?:[.-]\s?)?)(?:[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s?(?:[.-]\s?)?(?:[0-9]{4}))"
 
@@ -197,7 +197,7 @@ defmodule AutoLinker.Parser do
     |> link_phone(buffer, opts)
   end
 
-  defp add_wrapper(buffer, left_wrap, right_wrap), do: left_wrap <> buffer <> right_wrap
+  defp add_wrapper(buffer, left_wrap, right_wrap), do: "#{left_wrap}#{buffer}#{right_wrap}"
 
   @doc false
   def is_url?(buffer, true) do
